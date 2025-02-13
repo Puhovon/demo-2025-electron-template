@@ -1,32 +1,25 @@
-import { useEffect, useState } from "react"
-import { useLocation } from 'react-router';
+import { useEffect } from "react"
 import { Link } from "react-router";
 
-export default function UpdateMember() {
-  useEffect(() => { document.title = 'Обновить member' }, [])
-  const location = useLocation();
-  const [member, setMember] = useState(location.state.member);
-
+export default function CreateMember() {
+  useEffect(() => { document.title = 'Создать member' }, [])
   async function submitHandler(e) {
     e.preventDefault()
-    const updMember = {
-      id: member.id,
-      type: e.target.type.value,
-      name: e.target.name.value,
+    const member = {
       ceo: e.target.ceo.value,
-      email: e.target.email.value,
-      phone: e.target.phone.value,
-      address: e.target.address.value,
-      rating: e.target.rating.value
+      age: e.target.age.value,
+      post: e.target.post.value,
+      organization: e.target.organization.value,
+      salary: e.target.salary.value
     }
-    await window.api.updateMember(updMember);
-    setMember(updMember)
+    await window.api.createMember(member);
     document.querySelector('form').reset()
   }
 
   return <div className="form">
     <Link to={'/'}><button>{"<-- Назад"}</button></Link>
-    <h1>Обновить member</h1>
+    
+    <h1>Создать member</h1>
     <form onSubmit={(e) => submitHandler(e)}>
       <label htmlFor="ceo">CEO:</label>
       <input id="ceo" type="text" required />

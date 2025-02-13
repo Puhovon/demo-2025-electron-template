@@ -3,8 +3,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 const api = {
   getMembers: () => ipcRenderer.invoke('getMembers'),
-  addMember: (member) => ipcRenderer.invoke('addMember', member),
-  updateMember: (member) => ipcRenderer.invoke('updateMember', member),
+  createMember: (member) => ipcRenderer.invoke('createMember', member),
+  updateMember: (member) => ipcRenderer.invoke('updateMember', member)
 }
 
 if (process.contextIsolated) {

@@ -2,36 +2,48 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import connectDB from './db';
 
-async function foo(event, data) {
+async function getMembers() {
+  console.log("getMembers")
   try {
-    return null;
+    const response = await global.dbclient.query(`SELECT T1. *,
+      CASE WHEN sum(T2.production_quantity) > 300000 THEN 15
+      WHEN sum(T2.production_quantity) > 50000 THEN 10
+      WHEN sum(T2.production_quantity) > 10000 THEN 5
+      ELSE 0
+      END as discount
+      from members as T1
+      LEFT JOIN sales as T2 on T1.id = T2.member_id
+      GROUP BY T1.id`)
+      return response.rows
   } catch (e) {
-    console.log(e);
+    console.log(e)
   }
 }
+async function createMember(event, member) {
+  const { ceo, age, post, organization, salary } = member
 
-async function addMember(event, member) {
-  const { ceo, age, post, organization, salary } = member;
   try {
-    await global.dbclient.query(`INSERT INTO members (ceo, age, post, organization, salary) VALUES ($1, $2, $3, $4, $5)`,
-      [ceo, age, post, organization, salary]);
-    dialog.showMessageBox({ message: 'Member was created' });
+    await global.dbclient.query(`INSERT into members (ceo, age, post, organization, salary) values('${ceo}', '${age}', '${post}', '${organization}', '${salary}')`)
+    dialog.showMessageBox({ message: 'Успех! Member создан' })
   } catch (e) {
-    console.log(e);
-    dialog.showErrorBox('Error', e);
+    console.log(e)
+    dialog.showErrorBox('Ошибка', "Member с таким именем уже есть")
   }
 }
-
 async function updateMember(event, member) {
-  const { id, ceo, age, post, organization, salary } = member;
+  const { ceo, age, post, organization, salary } = member;
+
   try {
-    await global.dbclient.query(`UPDATE members SET ceo = $1, age = $2, post = $3, organization = $4, salary = $5 WHERE id = $6`,
-      [ceo, age, post, organization, salary, id]);
-    dialog.showMessageBox({ message: 'Member was updated' });
+    await global.dbclient.query(`UPDATE members
+      SET ceo='${ceo}', age='${age}', post='${post}', organization='${organization}', salary='${salary}'
+      WHERE members.id = ${id};`)
+    dialog.showMessageBox({ message: 'Успех! Данные обновлены' })
+    return;
   } catch (e) {
-    dialog.showErrorBox('Error', e);
-    return e;
+    dialog.showErrorBox('Невозможно создать пользователя', 'Такой пользователь уже есть')
+    return ('error')
   }
 }
 
@@ -40,6 +52,7 @@ function createWindow() {
     width: 900,
     height: 670,
     show: false,
+    icon: join(__dirname, '../../resources/icon.ico'),
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -64,10 +77,14 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
 
-  ipcMain.handle('sendSignal', foo)
+  global.dbclient = await connectDB();
+
+  ipcMain.handle('getMembers', getMembers)
+  ipcMain.handle('createMember', createMember)
+  ipcMain.handle('updateMember', updateMember)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

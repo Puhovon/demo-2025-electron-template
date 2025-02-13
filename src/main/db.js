@@ -10,6 +10,7 @@ export default async () => {
     })
 
     await client.connect();
+    console.log("Connected to PostgreSQL");
     return client;
 }
 
