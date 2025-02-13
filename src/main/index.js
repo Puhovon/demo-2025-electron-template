@@ -13,7 +13,7 @@ async function getMembers() {
       WHEN sum(T2.production_quantity) > 10000 THEN 5
       ELSE 0
       END as discount
-      from members as T1
+      from partners as T1
       LEFT JOIN sales as T2 on T1.id = T2.member_id
       GROUP BY T1.id`)
       return response.rows
