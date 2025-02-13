@@ -5,10 +5,33 @@ import icon from '../../resources/icon.png?asset'
 
 async function foo(event, data) {
   try {
-    console.log(data)
-    dialog.showMessageBox({ message: 'message back' })
+    return null;
   } catch (e) {
-    dialog.showErrorBox('Ошибка', e)
+    console.log(e);
+  }
+}
+
+async function addMember(event, member) {
+  const { ceo, age, post, organization, salary } = member;
+  try {
+    await global.dbclient.query(`INSERT INTO members (ceo, age, post, organization, salary) VALUES ($1, $2, $3, $4, $5)`,
+      [ceo, age, post, organization, salary]);
+    dialog.showMessageBox({ message: 'Member was created' });
+  } catch (e) {
+    console.log(e);
+    dialog.showErrorBox('Error', e);
+  }
+}
+
+async function updateMember(event, member) {
+  const { id, ceo, age, post, organization, salary } = member;
+  try {
+    await global.dbclient.query(`UPDATE members SET ceo = $1, age = $2, post = $3, organization = $4, salary = $5 WHERE id = $6`,
+      [ceo, age, post, organization, salary, id]);
+    dialog.showMessageBox({ message: 'Member was updated' });
+  } catch (e) {
+    dialog.showErrorBox('Error', e);
+    return e;
   }
 }
 
